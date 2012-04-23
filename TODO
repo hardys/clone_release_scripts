@@ -1,0 +1,11 @@
+These scripts are a work in progress, there are bugs and things TODO, list of known issues below:
+- Hard-coded references to rhel channels, need to extend to be more generic and support fedora and maybe centos etc
+- There is still some duplication in the content-cloning sections of clone_release_from_* scripts, this can be pushed into common_functions.sh
+- Only supports a single org at present
+- Capability to "diff" clone_releases in some way would be nice, some additional spacecmd features required here (e.g configchannel_diff)
+- config-channel import/export is limited on RHN satellite because you can't export base64 encoded files (this is fixed in spacewalk)
+- clone-releases don't consider crypto-keys, these are expected to be managed manually on a per-satellite basis
+- Some scripts probably can run remote from the satellite, but several (notably those which look for kickstart trees) must be run on the satellite/spacewalk server, should add logic to sanity check that we're on the server as expected for these scripts
+- spacewalk-clone-by-date addition required to clone_release_from_rhel_release.sh, as both current approaches are flawed (spacewalk-create-channel doesn't work for supplementary or tools channels, and the spacecmd approach is really slow and doesn't work due to bz795565)
+- Add sanity check for non-sensible RELNAME prefix, if someone were to use something like "x86_64" or some other substring of a RHEL software channel as a prefix, things will definitely break, so we should check for this and bail out if a stupid prefix RELNAME is chosen
+- probably lots more :)

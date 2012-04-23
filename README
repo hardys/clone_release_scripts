@@ -1,0 +1,146 @@
+# Author : Steve Hardy : shardy@redhat.com
+
+----------------
+1 - Introduction
+----------------
+
+I've developed these scripts over time to simplify errata management, and to
+provide a semi-automated "staging" workflow.
+
+They are mostly just a wrapper for spacecmd, with calls to
+spacewalk-create-channel or spacewalk-clone-by-date in clone_release_from_rhel_release.sh
+
+Note that these are a work in progress, if you use them please test carefully &
+let me know (or send patches) if you find bugs or implement new features.
+
+Also please note, I've been refactoring them to sanitise, remove hardcoded
+references, improve consistency of naming conventions etc.  This work is
+ongoing so I can't promise everything will work properly, so *please* test
+before using in "real" satellite/spacewalk environments, and make sure you have
+adequate backups etc to recover if they do the wrong thing and eat all your
+satellite content... :)
+
+Accordingly I take NO RESPONSIBILITY WHATSOEVER for any errors, loss of data 
+etc, they are provided purely as an example of spacecmd usage, in the hope that
+ people may find them useful (and contribute back).
+
+Also note that none of these scripts require root priveliges to run, you will 
+be much safer if you simply setup your satellite/spacewalk user credentials in 
+~/.spacecmd/config in your normal user account.
+
+I am aware that others probably have different/better ways of doing what I've
+done here, and I'm interested to hear if that is the case, please feel free to
+drop me a mail with links to any other projects.
+
+-----------------------------------------------------
+2 - "Quickstart" guide to getting the scripts working
+-----------------------------------------------------
+
+- Install a recent version of spacecmd Get spacecmd from
+http://spacewalk.redhat.com/yum/nightly Note - do NOT use the EPEL version, it
+is old and buggy, and won't work anyway because these scripts rely on very
+recent spacecmd features.
+
+- Check out a copy of the scripts.  They can run locally on a satellite server,
+or in some cases, on some other machine which has network access to the
+satellite XMLRPC interface.  Note - Almost all of my testing has been running
+them locally on a satellite/spacewalk server talking to the XMLRPC interface on
+localhost
+
+cd /home/$USERNAME
+git clone git://github.com/hardys/clone_release_scripts.git
+
+- Edit config file for spacecmd to contain your satellite login credentials:
+
+$ cat ~/.spacecmd/config
+[spacecmd]
+server=localhost
+username=satellite_username
+password=satellite_password
+nossl=0
+
+- Update the RELNAME, variable in common_functions.sh to suit your 
+required content prefix (see below for full descrition of naming conventions)
+
+- Add the script directory to your PATH:
+export PATH=/home/$USERNAME/clone_release_scripts:$PATH
+
+-------------------------------------------
+3 -"Release" content and naming conventions
+-------------------------------------------
+
+For the purposes of these scripts, a "Release" will comprise of the following:
+
+- Clone Software Channels
+- Kickstart profile(s)
+- Activation keys
+- Config channels
+
+These items will be identified via a fixed-format naming convention/prefix:
+
+prefix_<RHEL_RELEASE>_<$CUSTOMER_RELEASE>.<$CUSTOMER_INTERIM_VERSION>
+
+e.g:
+
+prefix_5_1.0 : This would define a release for RHEL 5, major version 1,
+interim version 0.  Note the major/minor numbers here are *not* intended to
+map to the RHEL release numbering, they are simply used to identify timeline/
+progression on the "clone releases" created with these scripts
+
+------------------------------------------
+3.1 - Periodic Releases ("clone releases")
+------------------------------------------
+
+The clone_release_from_base_channels.sh script implements a "point in time"
+clone, cloning the base-channels in current state (e.g all errata to-date)
+
+The clone_release_from_rhel_release.sh provides a method to generate a periodic
+release based on a specific update level of RHEL.  This may be desirable for 
+certification purposes.
+
+Periodic releases (of either point-in-time or rhel-release variety) will create
+a new "major" version release, e.g prefix_5_1.0, prefix_5_2.0, prefix_5_3.0, 
+with (non software-channel) content cloned from the most recent previous
+release (which may be a "major" or an "interim" release)
+
+------------------------------------------------
+3.2 - Interim Releases "clone of clone releases"
+------------------------------------------------
+
+The clone_release_from_existing.sh provides the capability to clone an existing
+release, and push specific errata into the build, e.g critical security fixes.
+
+Interim releases will increment the interim version number in the release
+prefix, e.g prefix_5_2.1, prefix_5_2.2, prefix_5_2.3 etc.
+
+-------------------------------------------
+3.3 - Migration of systems between releases
+-------------------------------------------
+
+A scripted method of migrating systems between release levels is provided:
+
+ * Run clone_release_system_subscribe.sh which resubscribes the system(s)
+   to the new clone software-channels (and configuration-channnels).  Note
+   this does *not* re-register the system so you will not get any changes from
+   updated activation keys in the new clone release.
+ * Schedule a "yum clean all && yum -y update" which will pull the updated
+   packages from the newly subscribed software-channels
+ * Schedule a sync of the satellite managed config files (rhn-cfg-client get)
+
+---------------------
+4.1 Content migration
+---------------------
+
+Two (or more) satellite/spacewalk servers can be installed, such that there
+is a "development/staging" satellite, and a "production" satellite.
+
+Then the clone_release_export.sh and clone_release_import.sh scripts can
+be used to facilitate a progression of "clone release" content from the
+development satellite to the production one.
+
+This is deliberately a manual process (export, then import), which ensures 
+separation between the two satellites.  I guess I could use ISS or something
+but since that only handles software channel content, it seemed easier to do
+a dumb export/import process, which also allows for easy archiving/backup of
+releases.
+

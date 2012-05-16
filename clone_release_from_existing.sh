@@ -54,9 +54,24 @@ exit_usage()
 # Note that this script will recursively clone, including all child channels
 # the channel argument passed must be an existing ${RELNAME}_* base channel
 
+# The channel arg is manatory
+if [ $# -lt 1 ]
+then
+    exit_usage
+fi
+
+# optionally can omit the errata args if you want a pure clone of the
+# existing release with no additions (useful for manual fixup builds)
 if [ $# -lt 2 ]
 then
-   exit_usage $0
+    echo
+    echo "You have called $0 with no errata arguments"
+    echo "This will create a clone-release identical to $1"
+    echo "This is normally not what you want."
+    echo "Please press Ctrl-C now to exit if this is not what you require"
+    echo "Alternatively enter to continue"
+    echo
+    read
 fi
 
 # First we sanity check the CLI args to ensure they look reasonable

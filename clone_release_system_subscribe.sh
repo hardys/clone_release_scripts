@@ -105,8 +105,8 @@ do
    # NOTE the following -b switch adds each config-channel to the bottom of the list-of-precedence
    # This should be fine if there aren't overlapping config-channels which require order-of-precedence rules
    # If there are complicated precedence requirements, they may need fixing up with a spacecmd system_setconfigchannelorder call
-   echo_debug "spacecmd -y -- system_addconfigchannels ${s} ${NEWCC_CHANS} -b"
-   spacecmd -y -- system_addconfigchannels ${s} ${NEWCC_CHANS} -b
-done
-
-
+   # We are iterating the config-channels to avoid not adding any config-channel in case one of them doesn't exist
+   for ONE_CC in ${NEWCC_CHANS}; do
+      echo_debug "spacecmd -y -- system_addconfigchannels ${s} ${ONE_CC} -b"
+      spacecmd -y -- system_addconfigchannels ${s} ${ONE_CC} -b
+   done

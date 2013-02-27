@@ -92,8 +92,8 @@ then
     ERRATASTOP=${RHEL5_DATES[${UPDATE}]}
 elif [ ${RHELVERSION} -eq 6 ]
 then
-    ERRATASTART=${RHEL5_DATES[0]}
-    ERRATASTOP=${RHEL5_DATES[${UPDATE}]}
+    ERRATASTART=${RHEL6_DATES[0]}
+    ERRATASTOP=${RHEL6_DATES[${UPDATE}]}
 else
     echo "Error, unexpected RHEL Release version ${RHELVERSION}"
     exit 1
@@ -138,7 +138,12 @@ else
 fi
 echo
 
-exit 1
+# not sure this exit 1 is as intended by Steven. Disabling for now
+# we also want a server name as it is not localhost
+# pcfe, 2013-02-27
+#exit 1
+SATSERVERNAMEIS=localhost
+
 
 # Now we have two options, either publish the packages via spacewalk-create-channel
 # or publish errata via spacecmd softwarechannel_adderratabydate
@@ -158,8 +163,8 @@ then
     # and let spacewalk-create-channel publish into the existing clone channels
 
     # First we do the base channel
-    echo "spacewalk-create-channel --user="${RHNUSER}" --password="${DBGPASS}" --server="localhost" -r "Server" -v ${RHELVERSION} -u "u${UPDATE}" -c ${BASECHANNEL} -d ${DESTCHANNEL} -L -a ${ARCH}"
-    spacewalk-create-channel --user="${RHNUSER}" --password="${RHNPASS}" --server="localhost" -r "Server" -v ${RHELVERSION} -u "u${UPDATE}" -c ${BASECHANNEL} -d ${DESTCHANNEL} -L -a ${ARCH}
+    echo "spacewalk-create-channel --user="${RHNUSER}" --password="${DBGPASS}" --server="${SATSERVERNAMEIS}" -r "Server" -v ${RHELVERSION} -u "u${UPDATE}" -c ${BASECHANNEL} -d ${DESTCHANNEL} -L -a ${ARCH}"
+    spacewalk-create-channel --user="${RHNUSER}" --password="${RHNPASS}" --server="${SATSERVERNAMEIS}" -r "Server" -v ${RHELVERSION} -u "u${UPDATE}" -c ${BASECHANNEL} -d ${DESTCHANNEL} -L -a ${ARCH}
 
     # Then any RHEL channels which have a data file under /usr/share/rhn/channel-data/
     # e.g supplementary, extras
@@ -180,8 +185,8 @@ then
         if echo ${CHSRC} | grep "^server-supplementary"
         then
             echo "Got supplementary child channel, using spacewalk-create-chanel"
-            echo "spacewalk-create-channel --user=\"${RHNUSER}\" --password=\"${DBGPASS}\" --server=\"localhost\" -r \"Server\" -v ${RHELVERSION} -u \"u${UPDATE}\" -c ${CHSRC} -d ${child} -L -a ${ARCH} -e \"Supplementary\""
-            spacewalk-create-channel --user="${RHNUSER}" --password="${RHNPASS}" --server="localhost" -r "Server" -v ${RHELVERSION} -u "u${UPDATE}" -c ${CHSRC} -d ${child} -L -a ${ARCH} -e "Supplementary"
+            echo "spacewalk-create-channel --user=\"${RHNUSER}\" --password=\"${DBGPASS}\" --server=\"${SATSERVERNAMEIS}\" -r \"Server\" -v ${RHELVERSION} -u \"u${UPDATE}\" -c ${CHSRC} -d ${child} -L -a ${ARCH} -e \"Supplementary\""
+            spacewalk-create-channel --user="${RHNUSER}" --password="${RHNPASS}" --server="${SATSERVERNAMEIS}" -r "Server" -v ${RHELVERSION} -u "u${UPDATE}" -c ${CHSRC} -d ${child} -L -a ${ARCH} -e "Supplementary"
         else
             echo "Cloning by errata date from $CHSRC into $child from ${ERRATASTART} to ${ERRATASTOP}"
             echo "Adding errata from ${CHSRC} to ${child} (note this may take a while!)"
@@ -197,8 +202,8 @@ then
     # Note this uses the (new) spacecmd softwarechannel_adderratabydate -p option which 
     # publishes (rather than clones) the errata into the channel
     echo_debug "Adding errata to ${DESTCHANNEL}, this may take a while!"
-    echo "spacecmd -y --debug -- softwarechannel_adderratabydate -i -p ${BASECHANNEL} ${DESTCHANNEL} ${ERRATASTART} ${ERRATASTOP}"
-    spacecmd -y --debug -- softwarechannel_adderratabydate -i -p ${BASECHANNEL} ${DESTCHANNEL} ${ERRATASTART} ${ERRATASTOP}
+    echo "spacecmd -y --debug -- softwarechannel_adderratabydate -p ${BASECHANNEL} ${DESTCHANNEL} ${ERRATASTART} ${ERRATASTOP}"
+    spacecmd -y --debug -- softwarechannel_adderratabydate -p ${BASECHANNEL} ${DESTCHANNEL} ${ERRATASTART} ${ERRATASTOP}
 
     # Then each of the new child channels.
     for child in $(spacecmd -- softwarechannel_listchildchannels ${DESTCHANNEL} 2>/dev/null)

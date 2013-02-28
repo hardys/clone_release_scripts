@@ -52,12 +52,12 @@ fi
 export TERM=vt100
 
 # Define the customer/project/stage name (used as a prefix)
-RELNAME="stevecorp"
+RELNAME="banana"
 
 # default RHEL version for the cloning scripts
 if [ -z $RHELVERSION ]
 then
-    RHELVERSION=5
+    RHELVERSION=6
 fi
 
 RELPREFIX="${RELNAME}_${RHELVERSION}"

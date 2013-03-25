@@ -110,3 +110,5 @@ do
       echo_debug "spacecmd -y -- system_addconfigchannels ${s} ${ch} -b"
       spacecmd -y -- system_addconfigchannels ${s} ${ch} -b
    done
+
+done

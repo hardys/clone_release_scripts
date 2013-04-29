@@ -52,9 +52,6 @@ exit_usage()
     exit 1
 }
 
-# Source some common function definitions
-. common_functions.sh
-
 if [ $# -lt 1 ]
 then
     exit_usage
@@ -62,6 +59,9 @@ fi
 
 RHELVERSION=$(echo $1 | cut -d. -f1)
 UPDATE=$(echo $1 | cut -d. -f2)
+
+# Source some common function definitions
+. common_functions.sh
 
 # Base channel naming:
 # rhel-x86_64-server-5

@@ -43,7 +43,7 @@ SRC_CHAN=$1
 echo 
 echo "******************************************************************************"
 echo "WARNING : You are about to DELETE clone release ${SRC_CHAN}. "
-echo "This will export the base channel, all child channels, "
+echo "This will delete the base channel, all child channels, "
 echo "along with ALL related kickstart profile, config channel and activation key content."
 echo
 echo "*** If unsure, DO NOT proceed, this cannot be undone!!! ***"

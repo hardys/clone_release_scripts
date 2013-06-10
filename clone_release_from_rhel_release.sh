@@ -182,7 +182,7 @@ then
         # /usr/share/rhn/channel-data/5-u5-server-x86_64-Clusterstorage
         # /usr/share/rhn/channel-data/5-u5-server-x86_64-Supplementary
         # /usr/share/rhn/channel-data/5-u5-server-x86_64-Vt
-        if echo ${CHSRC} | grep "^server-supplementary"
+        if echo ${CHSRC} | grep "server-supplementary"
         then
             echo "Got supplementary child channel, using spacewalk-create-chanel"
             echo "spacewalk-create-channel --user=\"${RHNUSER}\" --password=\"${DBGPASS}\" --server=\"${SATSERVERNAMEIS}\" -r \"Server\" -v ${RHELVERSION} -u \"u${UPDATE}\" -c ${CHSRC} -d ${child} -a ${ARCH} -e \"Supplementary\""

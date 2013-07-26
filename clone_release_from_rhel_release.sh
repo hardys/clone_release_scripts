@@ -163,8 +163,8 @@ then
     # and let spacewalk-create-channel publish into the existing clone channels
 
     # First we do the base channel
-    echo "spacewalk-create-channel --user="${RHNUSER}" --password="${DBGPASS}" --server="${SATSERVERNAMEIS}" -r "Server" -v ${RHELVERSION} -u "u${UPDATE}" -c ${BASECHANNEL} -d ${DESTCHANNEL} -L -a ${ARCH}"
-    spacewalk-create-channel --user="${RHNUSER}" --password="${RHNPASS}" --server="${SATSERVERNAMEIS}" -r "Server" -v ${RHELVERSION} -u "u${UPDATE}" -c ${BASECHANNEL} -d ${DESTCHANNEL} -L -a ${ARCH}
+    echo "spacewalk-create-channel --user="${RHNUSER}" --password="${DBGPASS}" --server="${SATSERVERNAMEIS}" -r "Server" -v ${RHELVERSION} -u "u${UPDATE}" -c ${BASECHANNEL} -d ${DESTCHANNEL} -a ${ARCH}"
+    spacewalk-create-channel --user="${RHNUSER}" --password="${RHNPASS}" --server="${SATSERVERNAMEIS}" -r "Server" -v ${RHELVERSION} -u "u${UPDATE}" -c ${BASECHANNEL} -d ${DESTCHANNEL} -a ${ARCH}
 
     # Then any RHEL channels which have a data file under /usr/share/rhn/channel-data/
     # e.g supplementary, extras
@@ -182,11 +182,11 @@ then
         # /usr/share/rhn/channel-data/5-u5-server-x86_64-Clusterstorage
         # /usr/share/rhn/channel-data/5-u5-server-x86_64-Supplementary
         # /usr/share/rhn/channel-data/5-u5-server-x86_64-Vt
-        if echo ${CHSRC} | grep "^server-supplementary"
+        if echo ${CHSRC} | grep "server-supplementary"
         then
             echo "Got supplementary child channel, using spacewalk-create-chanel"
-            echo "spacewalk-create-channel --user=\"${RHNUSER}\" --password=\"${DBGPASS}\" --server=\"${SATSERVERNAMEIS}\" -r \"Server\" -v ${RHELVERSION} -u \"u${UPDATE}\" -c ${CHSRC} -d ${child} -L -a ${ARCH} -e \"Supplementary\""
-            spacewalk-create-channel --user="${RHNUSER}" --password="${RHNPASS}" --server="${SATSERVERNAMEIS}" -r "Server" -v ${RHELVERSION} -u "u${UPDATE}" -c ${CHSRC} -d ${child} -L -a ${ARCH} -e "Supplementary"
+            echo "spacewalk-create-channel --user=\"${RHNUSER}\" --password=\"${DBGPASS}\" --server=\"${SATSERVERNAMEIS}\" -r \"Server\" -v ${RHELVERSION} -u \"u${UPDATE}\" -c ${CHSRC} -d ${child} -a ${ARCH} -e \"Supplementary\""
+            spacewalk-create-channel --user="${RHNUSER}" --password="${RHNPASS}" --server="${SATSERVERNAMEIS}" -r "Server" -v ${RHELVERSION} -u "u${UPDATE}" -c ${CHSRC} -d ${child} -a ${ARCH} -e "Supplementary"
         else
             echo "Cloning by errata date from $CHSRC into $child from ${ERRATASTART} to ${ERRATASTOP}"
             echo "Adding errata from ${CHSRC} to ${child} (note this may take a while!)"
@@ -265,6 +265,17 @@ echo_debug "Cloning activation keys with the prefix $AKPREFIX"
 echo_debug "spacecmd -- activationkey_clone \"${AKPREFIX}*\" -x \"s/${OLDAKPREFIX}/${NEWAKPREFIX}/\""
 spacecmd -- activationkey_clone "${AKPREFIX}*" -x "s/${OLDAKPREFIX}/${NEWAKPREFIX}/"
 
+# Set the new cloned activationkey to the new basechannel + child channels
+echo_debug "Set new Basechannel for cloned activation keys with the prefix ${NEWAKPREFIX}"
+NEW_AKLIST=$(spacecmd -- activationkey_list | grep ${NEWAKPREFIX})
+for AK in $(echo ${NEW_AKLIST}); do
+   LIST_TMP=$(echo $AK | sed 's/.*_//g')
+   CHANNELS=$(spacecmd -- activationkey_listchildchannels ${ORG}-${OLDAKPREFIX}_${ARCH}_${LIST_TMP} | sed "s/^/${NEWAKPREFIX}_/" | tr "\n" " ")
+   echo_debug "spacecmd -- activationkey_setbasechannel $AK ${NEW_PREFIX}_${RHELBASECH}"
+   spacecmd -- activationkey_setbasechannel $AK ${NEW_PREFIX}_${RHELBASECH}
+   echo_debug "spacecmd -- activationkey_addchildchannels ${AK} ${CHANNELS}"
+   spacecmd -- activationkey_addchildchannels ${AK} ${CHANNELS}
+done
+
 # Flip the activationkeys in any cloned kickstart profiles
 ks_profiles_flip_akeys ${NEWKSPREFIX} ${OLDAKPREFIX} ${NEWAKPREFIX}
-

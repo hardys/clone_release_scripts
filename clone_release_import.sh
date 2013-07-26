@@ -106,4 +106,3 @@ do
 done
 
 echo "Complete : NOTE cobbler template snippets must also be copied across or updated via SVN!"
-echo "Also note the \"template\" checkbox must be manually enabled for all imported kickstarts, this is due to an API limitation"

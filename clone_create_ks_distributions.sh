@@ -55,8 +55,8 @@ then
     echo_debug "Got distro hint arg $2, looking for appropriate ks tree"
     OLDSUFFIX=$(echo $2 | sed "s/\./-u/")
     NEWSUFFIX=$(echo $2 | sed "s/\./\\\./")
-    KSPATH=$( find /var/satellite/rhn/kickstart/ -name \
-        ks-rhel-${ARCH}-server-${RHELVERSION}* | grep -e "${OLDSUFFIX}" -e "${NEWSUFFIX}")
+    KSPATH=$(find /var/satellite/rhn/kickstart/ -name \
+        "ks-rhel-${ARCH}-server-${RHELVERSION}*" | grep -e "${OLDSUFFIX}" -e "${NEWSUFFIX}")
     if [ -n "${KSPATH}" ]
     then
         echo "Found kickstart tree path for release $2 : ${KSPATH}"
@@ -67,11 +67,9 @@ then
 else
     echo "No release version passed, trying to find latest kickstart tree path"
     KSPATH=$(find /var/satellite/rhn/kickstart/ -name \
-        ks-rhel-${ARCH}-server-${RHELVERSION}-${RHELVERSION}* | sort -n | tail -n1)
+        "ks-rhel-${ARCH}-server-${RHELVERSION}-${RHELVERSION}*" | sort -n | tail -n1)
 fi
 echo_debug "spacecmd -- distribution_create -n ${CLONECH} -p ${KSPATH} \
  -b ${CLONECH} -t rhel_${RHELVERSION}"
 spacecmd -- distribution_create -n ${CLONECH} -p ${KSPATH} -b ${CLONECH}\
     -t rhel_${RHELVERSION}
-
-

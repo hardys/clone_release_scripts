@@ -108,3 +108,7 @@ echo_debug "Deleting base-channel ${SRC_CHAN}"
 echo_debug "spacecmd -y -- softwarechannel_delete ${SRC_CHAN} 2>/dev/null"
 spacecmd -y -- softwarechannel_delete ${SRC_CHAN} 2>/dev/null
 
+# If there an export release exists, delete this aswell
+echo_debug "Deleting the export release if the directory exists"
+echo_debug "test -d /var/satellite/exports/clone_release_exports/${SRC_CHAN} && rm -rf /var/satellite/exports/clone_release_exports/${SRC_CHAN}"
+test -d /var/satellite/exports/clone_release_exports/${SRC_CHAN} && rm -rf /var/satellite/exports/clone_release_exports/${SRC_CHAN}

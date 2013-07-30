@@ -76,9 +76,14 @@ echo "Importing CHANNELS=${CHANNELS} via satellite-sync"
 # Import the base channel content along with any child channels via satellite-sync
 for c in ${CHANNELS}
 do
-   # Import the channel via satellite-sync
-   echo_debug "satellite-sync -m $DUMPPATH/channel_export_noks/ -c $c"
-   satellite-sync -m $DUMPPATH/channel_export_noks/ -c $c
+   RC="1"
+   while [ "${RC}" -ne "0" ]
+   do
+      # Import the channel via satellite-sync
+      echo_debug "satellite-sync -m $DUMPPATH/channel_export_noks/ -c $c"
+      satellite-sync -m $DUMPPATH/channel_export_noks/ -c $c
+      RC="$?"
+   done
 done
 
 # Create the kickstart distributions for the new clone release

@@ -270,11 +270,15 @@ echo_debug "Set new Basechannel for cloned activation keys with the prefix ${NEW
 NEW_AKLIST=$(spacecmd -- activationkey_list | grep ${NEWAKPREFIX})
 for AK in $(echo ${NEW_AKLIST}); do
    LIST_TMP=$(echo $AK | sed 's/.*_//g')
+   CHANNELS=""
    CHANNELS=$(spacecmd -- activationkey_listchildchannels ${ORG}-${OLDAKPREFIX}_${ARCH}_${LIST_TMP} | sed "s/^/${NEWAKPREFIX}_/" | tr "\n" " ")
-   echo_debug "spacecmd -- activationkey_setbasechannel $AK ${NEW_PREFIX}_${RHELBASECH}"
-   spacecmd -- activationkey_setbasechannel $AK ${NEW_PREFIX}_${RHELBASECH}
-   echo_debug "spacecmd -- activationkey_addchildchannels ${AK} ${CHANNELS}"
-   spacecmd -- activationkey_addchildchannels ${AK} ${CHANNELS}
+   if [ -n "${CHANNELS}" ]
+   then
+       echo_debug "spacecmd -- activationkey_setbasechannel $AK ${NEW_PREFIX}_${RHELBASECH}"
+       spacecmd -- activationkey_setbasechannel $AK ${NEW_PREFIX}_${RHELBASECH}
+       echo_debug "spacecmd -- activationkey_addchildchannels ${AK} ${CHANNELS}"
+       spacecmd -- activationkey_addchildchannels ${AK} ${CHANNELS}
+   fi
 done
 
 # Flip the activationkeys in any cloned kickstart profiles

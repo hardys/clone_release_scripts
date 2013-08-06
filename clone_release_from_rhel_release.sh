@@ -128,9 +128,13 @@ else
         CUST_ADDCLONECH=$(spacecmd -- softwarechannel_listchildchannels ${DESTCHANNEL} 2>/dev/null | grep ${CUST_ADDBASECH})
         echo_debug "Found ${RELNAME} additional channel ${CUST_ADDBASECH}"
         echo_debug "Adding all latest packages from ${CUST_ADDBASECH} to ${CUST_ADDCLONECH}"
+	PKGS=""
         PKGS=$(spacecmd -- softwarechannel_listallpackages ${CUST_ADDBASECH} 2>/dev/null | tr "\n" " ")
-        echo "spacecmd -y -- softwarechannel_addpackages ${CUST_ADDCLONECH} ${PKGS}"
-        spacecmd -y -- softwarechannel_addpackages ${CUST_ADDCLONECH} ${PKGS}
+        if [ -n "${PKGS}" ]
+	then
+	    echo "spacecmd -y -- softwarechannel_addpackages ${CUST_ADDCLONECH} ${PKGS}"
+            spacecmd -y -- softwarechannel_addpackages ${CUST_ADDCLONECH} ${PKGS}
+	fi
     else
        echo "Error, channel ${BASECHANNEL} does not seem to be a base channel?"
         exit 1

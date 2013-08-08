@@ -39,6 +39,7 @@ fi
 # If check_channel_arg returns, the channel label passed is OK
 check_channel_arg $1 "import"
 SRC_CHAN=$1
+RELEASE=$(echo ${SRC_CHAN} | tr "_" "." | cut -d "." -f2,3)
 
 # Check the expected dumpdir contains the requested directory
 DUMPDIR="/var/satellite/exports/clone_release_exports"
@@ -87,7 +88,7 @@ do
 done
 
 # Create the kickstart distributions for the new clone release
-./clone_create_ks_distributions.sh ${SRC_CHAN}
+./clone_create_ks_distributions.sh ${SRC_CHAN} ${RELEASE}
 
 # Import the kickstart profiles
 for f in $(find $DUMPPATH/export_ks/ -name *.json)

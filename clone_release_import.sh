@@ -39,6 +39,7 @@ fi
 # If check_channel_arg returns, the channel label passed is OK
 check_channel_arg $1 "import"
 SRC_CHAN=$1
+RELEASE=$(echo ${SRC_CHAN} | tr "_" "." | cut -d "." -f2,3)
 
 # Check the expected dumpdir contains the requested directory
 DUMPDIR="/var/satellite/exports/clone_release_exports"
@@ -76,13 +77,18 @@ echo "Importing CHANNELS=${CHANNELS} via satellite-sync"
 # Import the base channel content along with any child channels via satellite-sync
 for c in ${CHANNELS}
 do
-   # Import the channel via satellite-sync
-   echo_debug "satellite-sync -m $DUMPPATH/channel_export_noks/ -c $c"
-   satellite-sync -m $DUMPPATH/channel_export_noks/ -c $c
+   RC="1"
+   while [ "${RC}" -ne "0" ]
+   do
+      # Import the channel via satellite-sync
+      echo_debug "satellite-sync -m $DUMPPATH/channel_export_noks/ -c $c"
+      satellite-sync -m $DUMPPATH/channel_export_noks/ -c $c
+      RC="$?"
+   done
 done
 
 # Create the kickstart distributions for the new clone release
-./clone_create_ks_distributions.sh ${SRC_CHAN}
+./clone_create_ks_distributions.sh ${SRC_CHAN} ${RELEASE}
 
 # Import the kickstart profiles
 for f in $(find $DUMPPATH/export_ks/ -name *.json)

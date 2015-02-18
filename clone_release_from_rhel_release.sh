@@ -128,9 +128,13 @@ else
         CUST_ADDCLONECH=$(spacecmd -- softwarechannel_listchildchannels ${DESTCHANNEL} 2>/dev/null | grep ${CUST_ADDBASECH})
         echo_debug "Found ${RELNAME} additional channel ${CUST_ADDBASECH}"
         echo_debug "Adding all latest packages from ${CUST_ADDBASECH} to ${CUST_ADDCLONECH}"
+	PKGS=""
         PKGS=$(spacecmd -- softwarechannel_listallpackages ${CUST_ADDBASECH} 2>/dev/null | tr "\n" " ")
-        echo "spacecmd -y -- softwarechannel_addpackages ${CUST_ADDCLONECH} ${PKGS}"
-        spacecmd -y -- softwarechannel_addpackages ${CUST_ADDCLONECH} ${PKGS}
+        if [ -n "${PKGS}" ]
+	then
+	    echo "spacecmd -y -- softwarechannel_addpackages ${CUST_ADDCLONECH} ${PKGS}"
+            spacecmd -y -- softwarechannel_addpackages ${CUST_ADDCLONECH} ${PKGS}
+	fi
     else
        echo "Error, channel ${BASECHANNEL} does not seem to be a base channel?"
         exit 1
@@ -269,12 +273,16 @@ spacecmd -- activationkey_clone "${AKPREFIX}*" -x "s/${OLDAKPREFIX}/${NEWAKPREFI
 echo_debug "Set new Basechannel for cloned activation keys with the prefix ${NEWAKPREFIX}"
 NEW_AKLIST=$(spacecmd -- activationkey_list | grep ${NEWAKPREFIX})
 for AK in $(echo ${NEW_AKLIST}); do
-   LIST_TMP=$(echo $AK | sed 's/.*_//g')
-   CHANNELS=$(spacecmd -- activationkey_listchildchannels ${ORG}-${OLDAKPREFIX}_${ARCH}_${LIST_TMP} | sed "s/^/${NEWAKPREFIX}_/" | tr "\n" " ")
    echo_debug "spacecmd -- activationkey_setbasechannel $AK ${NEW_PREFIX}_${RHELBASECH}"
    spacecmd -- activationkey_setbasechannel $AK ${NEW_PREFIX}_${RHELBASECH}
-   echo_debug "spacecmd -- activationkey_addchildchannels ${AK} ${CHANNELS}"
-   spacecmd -- activationkey_addchildchannels ${AK} ${CHANNELS}
+   LIST_TMP=$(echo $AK | sed 's/.*_//g')
+   CHANNELS=""
+   CHANNELS=$(spacecmd -- activationkey_listchildchannels ${ORG}-${OLDAKPREFIX}_${ARCH}_${LIST_TMP} | sed "s/^/${NEWAKPREFIX}_/" | tr "\n" " ")
+   if [ -n "${CHANNELS}" ]
+   then
+       echo_debug "spacecmd -- activationkey_addchildchannels ${AK} ${CHANNELS}"
+       spacecmd -- activationkey_addchildchannels ${AK} ${CHANNELS}
+   fi
 done
 
 # Flip the activationkeys in any cloned kickstart profiles
